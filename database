@@ -1,0 +1,62 @@
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
+from datetime import datetime
+import enum
+
+db = SQLAlchemy()
+
+class UserRole(enum.Enum):
+    USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password = db.Column(db.String(200), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime)
+    is_active = db.Column(db.Boolean, default=True)
+    role = db.Column(db.Enum(UserRole), default=UserRole.USER)
+    
+    # Relations
+    journals = db.relationship('Journal', backref='author', lazy=True, cascade='all, delete-orphan')
+    comments = db.relationship('Comment', backref='user', lazy=True, cascade='all, delete-orphan')
+
+class Journal(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    view_count = db.Column(db.Integer, default=0)
+    
+    # Clé étrangère
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    
+    # Relations
+    comments = db.relationship('Comment', backref='journal', lazy=True, cascade='all, delete-orphan')
+    
+    # Index
+    __table_args__ = (
+        db.Index('idx_journal_user_created', 'user_id', 'created_at'),
+    )
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    rating = db.Column(db.Integer, default=5, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Clés étrangères
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    journal_id = db.Column(db.Integer, db.ForeignKey('journal.id', ondelete='CASCADE'), nullable=False)
+    
+    # Index
+    __table_args__ = (
+        db.Index('idx_comment_journal_created', 'journal_id', 'created_at'),
+        db.Index('idx_comment_user_journal', 'user_id', 'journal_id'),
+        db.CheckConstraint('rating >= 1 AND rating <= 5', name='check_rating_range'),
+    )

@@ -1,0 +1,27 @@
+import multiprocessing
+
+# Nombre de workers
+workers = multiprocessing.cpu_count() * 2 + 1
+
+# Adresse de liaison
+bind = "0.0.0.0:5000"
+
+# Configuration des workers
+worker_class = "sync"
+worker_connections = 1000
+timeout = 30
+keepalive = 2
+
+# Journalisation
+accesslog = "-"
+errorlog = "-"
+loglevel = "info"
+
+# Configuration SSL (décommentez et configurez pour HTTPS)
+# keyfile = "/path/to/privkey.pem"
+# certfile = "/path/to/fullchain.pem"
+
+# Sécurité
+limit_request_line = 4096
+limit_request_fields = 100
+limit_request_field_size = 8190

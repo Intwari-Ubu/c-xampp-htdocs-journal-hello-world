@@ -1,0 +1,5 @@
+# Installation de Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Obtenir un certificat
+sudo certbot --nginx -d votre-domaine.com -d www.votre-domaine.com

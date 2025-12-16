@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/journal_db
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      - db
+    volumes:
+      - ./static:/home/appuser/app/static
+      - ./logs:/home/appuser/app/logs
+    restart: unless-stopped
+    networks:
+      - journal-network
+      
+
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=journal_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    networks:
+      - journal-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./ssl:/etc/letsencrypt
+      - ./static:/usr/share/nginx/static
+    depends_on:
+      - web
+    networks:
+      - journal-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  journal-network:
+    driver: bridge

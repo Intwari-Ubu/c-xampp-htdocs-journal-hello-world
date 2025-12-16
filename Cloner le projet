@@ -1,0 +1,26 @@
+# Cloner le projet
+git clone https://github.com/votre-repo/journal_app.git /opt/journal_app
+cd /opt/journal_app
+
+# Créer l'environnement virtuel
+python3 -m venv venv
+source venv/bin/activate
+
+# Installer les dépendances
+pip install -r requirements.txt
+
+# Configurer les variables d'environnement
+cp .env.example .env
+# Éditer .env avec vos valeurs
+
+# Initialiser PostgreSQL
+sudo apt install postgresql postgresql-contrib
+sudo -u postgres psql
+CREATE DATABASE journal_db;
+CREATE USER journal_user WITH PASSWORD 'votre_mot_de_passe';
+GRANT ALL PRIVILEGES ON DATABASE journal_db TO journal_user;
+\q
+
+# Initialiser la base de données
+flask init-db
+flask create-admin

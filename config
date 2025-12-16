@@ -1,0 +1,66 @@
+import os
+from datetime import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class Config:
+    """Configuration de base"""
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-change-in-production'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # Sécurité
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'True') == 'True'
+    SESSION_COOKIE_HTTPONLY = os.environ.get('SESSION_COOKIE_HTTPONLY', 'True') == 'True'
+    REMEMBER_COOKIE_SECURE = os.environ.get('REMEMBER_COOKIE_SECURE', 'True') == 'True'
+    REMEMBER_COOKIE_HTTPONLY = os.environ.get('REMEMBER_COOKIE_HTTPONLY', 'True') == 'True'
+    PERMANENT_SESSION_LIFETIME = timedelta(days=7)
+    
+    # Taille maximale des uploads (16MB)
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
+    
+    # Protection CSRF
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_SECRET_KEY = os.environ.get('WTF_CSRF_SECRET_KEY') or SECRET_KEY
+    
+    # Configuration email
+    MAIL_SERVER = os.environ.get('MAIL_SERVER')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True') == 'True'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+
+class DevelopmentConfig(Config):
+    """Configuration développement"""
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///journal_dev.db'
+    WTF_CSRF_ENABLED = False  # Désactivé en développement pour les tests
+
+class ProductionConfig(Config):
+    """Configuration production"""
+    DEBUG = False
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    
+    # Forcer HTTPS
+    PREFERRED_URL_SCHEME = 'https'
+    
+    # HSTS (HTTP Strict Transport Security)
+    HSTS_ENABLED = True
+    HSTS_SECONDS = 31536000  # 1 an
+    HSTS_INCLUDE_SUBDOMAINS = True
+    
+    # Content Security Policy
+    CSP_ENABLED = True
+
+class TestingConfig(Config):
+    """Configuration tests"""
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
+    WTF_CSRF_ENABLED = False
+
+config = {
+    'development': DevelopmentConfig,
+    'production': ProductionConfig,
+    'testing': TestingConfig,
+    'default': ProductionConfig
+}

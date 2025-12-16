@@ -1,0 +1,27 @@
+[Unit]
+Description=Journal App Gunicorn Service
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/journal_app
+Environment="PATH=/opt/journal_app/venv/bin"
+EnvironmentFile=/opt/journal_app/.env
+ExecStart=/opt/journal_app/venv/bin/gunicorn --config gunicorn_config.py app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+Restart=on-failure
+RestartSec=5
+
+# Sécurité
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/journal_app/logs
+ReadOnlyPaths=/opt/journal_app
+
+[Install]
+WantedBy=multi-user.target

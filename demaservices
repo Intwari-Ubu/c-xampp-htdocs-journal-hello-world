@@ -1,0 +1,10 @@
+# Copier le service systemd
+sudo cp systemd/journal_app.service /etc/systemd/system/
+
+# Activer et démarrer
+sudo systemctl daemon-reload
+sudo systemctl enable journal_app
+sudo systemctl start journal_app
+
+# Vérifier le statut
+sudo systemctl status journal_app
